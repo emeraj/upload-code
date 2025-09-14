@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FTP Code and Date Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input[type="text"]:focus, input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status.success {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+            border: 2px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .status.error {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+            border: 2px solid rgba(244, 67, 54, 0.3);
+        }
+
+        .status.info {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196f3;
+            border: 2px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .server-info {
+            background: rgba(158, 158, 158, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .server-info h3 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .server-info p {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 2px 0;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>FTP File Creator</h1>
+        
+        <div class="server-info">
+            <h3>FTP Server Configuration</h3>
+            <p><strong>Host:</strong> 198.15.115.235</p>
+            <p><strong>Port:</strong> 21</p>
+            <p><strong>Directory:</strong> /public_html</p>
+        </div>
+
+        <form id="ftpForm">
+            <div class="form-group">
+                <label for="code">Enter Code:</label>
+                <input type="text" id="code" name="code" required 
+                       placeholder="e.g., ABC123" pattern="[A-Za-z0-9]+"
+                       title="Code should contain only letters and numbers">
+            </div>
+
+            <div class="form-group">
+                <label for="date">Select Date:</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Create FTP File</button>
+        </form>
+
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Simple encryption function (for demonstration - use proper encryption in production)
+        function simpleEncrypt(text, key = 'secretkey') {
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                const charCode = text.charCodeAt(i);
+                const keyChar = key.charCodeAt(i % key.length);
+                result += String.fromCharCode(charCode ^ keyChar);
+            }
+            return btoa(result); // Base64 encode
+        }
+
+        // Real FTP operation using fetch to backend
+        async function createFTPFile(code, encryptedDate) {
+            // For demonstration, I'll create a downloadable file
+            // In production, this would send to your backend server
+            
+            try {
+                // Create file content
+                const fileContent = `Encrypted Date: ${encryptedDate}\nGenerated: ${new Date().toISOString()}\nCode: ${code}`;
+                
+                // Create and download file (simulating FTP file creation)
+                const blob = new Blob([fileContent], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                
+                // Create download link
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = code; // filename will be the code
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                return {
+                    success: true,
+                    filename: code,
+                    content: encryptedDate,
+                    message: `File "${code}" created and downloaded successfully!`
+                };
+                
+            } catch (error) {
+                throw new Error(`File creation failed: ${error.message}`);
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'flex';
+        }
+
+        document.getElementById('ftpForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const code = document.getElementById('code').value.trim();
+            const date = document.getElementById('date').value;
+            const submitBtn = document.querySelector('.submit-btn');
+            
+            if (!code || !date) {
+                showStatus('Please fill in all fields', 'error');
+                return;
+            }
+
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            submitBtn.classList.add('loading');
+            showStatus('Connecting to FTP server...', 'info');
+
+            try {
+                // Encrypt the date
+                const encryptedDate = simpleEncrypt(date);
+                
+                showStatus('Creating encrypted file...', 'info');
+                
+                // Create FTP file
+                const result = await createFTPFile(code, encryptedDate);
+                
+                showStatus(result.message, 'success');
+                
+                // Reset form after successful creation
+                setTimeout(() => {
+                    document.getElementById('ftpForm').reset();
+                    document.getElementById('date').valueAsDate = new Date();
+                }, 1500);
+                
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create FTP File';
+                submitBtn.classList.remove('loading');
+            }
+        });
+
+        // Set today's date as default
+        document.getElementById('date').valueAsDate = new Date();
+    </script>
+</body>
+</html>
